@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 import Servo as sv
+import numpy as np
 #Colors 
 HIGHLIGHT = '#ffffff'
 BG = '#05507C'
@@ -44,13 +45,37 @@ class StartPage(tk.Frame):
         def SetExperimentValues(self,trial_number, wing_band, force, head_mass, peck_count):
             user_trial = trial_number.get()
             user_wb = wing_band.get()
-            user_f = force.get()
+            user_F = force.get()
             user_mass = head_mass.get()
             user_pc = peck_count.get()
-            self.experiment_params ={"Trial" : user_trial, "Wing Band" : user_wb, "Force" : user_f, "Mass" : user_mass, "Number of Pecks" : peck_count}   
+            self.experiment_params ={"Trial" : user_trial, "Wing Band" : user_wb, "Force" : user_F, "Mass" : user_mass, "Number of Pecks" : peck_count}   
             return 0                   
         def RunSimulation(self):
-            print(self.experiment_params)
+            """calculation notes
+                servo does 60 deg in 0.18s 
+                we need to travel just over 30 deg -- so 0.1s to complete the 22mm linear motion path.  
+                peak velocity is then 22mm/0.1s aka 0.22 m/s or 22 cm/s (which is a tiny bit below the peak velocity we recorded)
+                Note: if we wanted more force we will need a seperate PSU to give more voltage and current
+                given we have tons of torque we can assume that the acceleration to peak velocity is nearly instant
+                accel is (vf - 0) / 0.1s 
+                force is a * m 
+                max force enterable is 24.2 newtons
+                by modulating the final velocity we can change the acceleration and thus force 
+                we can change the final velocity by changing the distance the arm moves at its max velo
+                the resulting eq is that the distance to travel is 
+                d = 0.1F/m
+                d = arc length 
+                arc length = arc_angle times radius
+                radius = 40mm 
+            """
+            if self.experinment_params["Force"] > 24.2:
+                self.experimeng_params["Force"] = 24.2
+                
+            distance = 0.1 * self.experinment_params["Force"] / self.experiment_params["Mass"]
+            arc_length = distance / 40
+            arc_length *= 57.2958
+            print(arc_length)
+            sv.Peck(self.experiment_params["Number Of Pecks"], arc_length)
             return False
         def show_plots():
             return False
@@ -76,10 +101,10 @@ class StartPage(tk.Frame):
         peck_count = tk.Entry(self, width=20,fg = HIGHLIGHT,bg = DEEP)
         peck_count.grid(row = 5,column = 2)
         confirm = tk.Button(self, text="Confirm Properties",fg = DEEP,bg = BUTTON,
-                            command=lambda: SetExperimentValues(self,trial_number, wing_band, force,head_mass)).grid(row = 14, column = 1)
+                            command=lambda: SetExperimentValues(self,trial_number, wing_band, force, head_mass)).grid(row = 14, column = 1)
         run = tk.Button(self, text="Run",fg = DEEP,bg = BUTTON,
                             command=lambda: RunSimulation(self)).grid(row = 14, column = 2)
-        default_peck = tk.Button(self, text="Default Peck",fg = DEEP,bg = BUTTON,
+        default_peck = tk.Button(self, text="Default Peck(25 m/s^2)",fg = DEEP,bg = BUTTON,
                             command=lambda: DefaultPeck(self)).grid(row = 14, column = 3)
 class PageOne(tk.Frame):
 
