@@ -69,7 +69,7 @@ class StartPage(tk.Frame):
                 radius = 40mm 
             """
             if self.experinment_params["Force"] > 24.2:
-                self.experimeng_params["Force"] = 24.2
+                self.experiment_params["Force"] = 24.2
                 
             distance = 0.1 * self.experinment_params["Force"] / self.experiment_params["Mass"]
             arc_length = distance / 40
